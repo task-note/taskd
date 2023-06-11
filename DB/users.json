@@ -1,0 +1,18 @@
+[
+  {
+    "_id": { "$oid": "5ca8c73febf7982f736f77b3" },
+    "username": "auto_yasser",
+    "email": "test@as.s",
+    "displayName": "Yasser",
+    "type": "user type",
+    "isSuperUser": true,
+    "groups": ["5ca8d337ebf7982f736f77c1"],
+    "deleted": false,
+    "password": "$2b$10$TnEd8huuJh8PMpc1V6/UCO5/svXpdvK6UnUUp2Kp2V1Xm8EI1Xdt.",
+    "refreshToken": "",
+    "updatedAt": { "$date": "2019-04-16T00:45:24.063+0000" },
+    "isActive": true,
+    "createdAt": { "$date": "2019-04-06T16:50:29.199+0000" },
+    "__v": 0
+  }
+]
