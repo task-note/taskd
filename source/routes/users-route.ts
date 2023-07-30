@@ -3,7 +3,8 @@ import {
   EDIT_USER_SCHEMA,
   GET_ALL_USERS,
   CHANGE_PASSWORD_SCHEMA,
-  CHANGE_OWN_INFO_SCHEMA
+  CHANGE_OWN_INFO_SCHEMA,
+  SIGNUP_SCHEMA
 } from './../config/users-schema';
 import Joi from 'joi';
 import express from 'express';
@@ -70,6 +71,21 @@ export class UserRoutes {
       }
     );
 
+    this.router.post(
+      '/resend',
+      async (
+        request: express.Request,
+        response: express.Response,
+        next: express.NextFunction
+      ) => {
+        let responseBody: HTTPErrorResponse | HTTPSuccessResponse;
+        console.log('resend--->', request.body)
+        responseBody = await this.userController.resendMail(request.body)
+        response.status(200);
+        response.json(responseBody);
+      }
+    );
+
     this.router.delete(
       '/:_id',
       async (
@@ -105,6 +121,36 @@ export class UserRoutes {
 
         if (!validateScehma.error) {
           responseBody = await this.userController.addUser(request.body);
+        } else {
+          responseBody = new HTTPErrorResponse(getListOfErrors(validateScehma));
+        }
+
+        response.status(200);
+        response.json(responseBody);
+      }
+    );
+
+    this.router.post(
+      '/signup',
+      async (
+        request: express.Request,
+        response: express.Response,
+        next: express.NextFunction
+      ) => {
+        let responseBody: HTTPErrorResponse | HTTPSuccessResponse;
+
+        const validateScehma = Joi.validate(request.body, SIGNUP_SCHEMA);
+
+        if (!validateScehma.error) {
+          let newUser = {}
+          Object.assign(newUser, request.body, {
+            "displayName": "default",
+            "type": "registered",
+            "isSuperUser": false,
+            "groups": [],
+            "isActive": false
+          });
+          responseBody = await this.userController.addUser(newUser);
         } else {
           responseBody = new HTTPErrorResponse(getListOfErrors(validateScehma));
         }

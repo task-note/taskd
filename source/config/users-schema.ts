@@ -82,6 +82,12 @@ export const CHANGE_OWN_INFO_SCHEMA = Joi.object()
     displayName: REQUIRED_STRING,
   }).required();
 
+export const SIGNUP_SCHEMA = Joi.object()
+  .keys({
+    username: REQUIRED_STRING,
+    email: Joi.string().email({ minDomainAtoms: 2 }),
+    password: REQUIRED_STRING,
+  }).required();
 
 export const CHANGE_PASSWORD_SCHEMA = Joi.object()
   .keys({

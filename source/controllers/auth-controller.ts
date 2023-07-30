@@ -8,7 +8,6 @@ import { ERROR_CODES } from '../lib/error-codes';
 import { TokenPayload } from '../dto/token-payload';
 import { JwtHelper } from '../helpers/jwt-helper';
 
-
 export class AuthController {
   
   jwtHelper : JwtHelper = JwtHelper.getInstance();

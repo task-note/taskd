@@ -3,10 +3,12 @@ import HTTPErrorResponse from './../lib/http/http-error-response';
 import HTTPSuccessResponse from '../lib/http/http-success-response';
 import { hash, compare } from 'bcrypt';
 import { ERROR_CODES } from '../lib/error-codes';
+import { MailHelper } from '../helpers/mailer'
 
 export class UserController {
-
+  private mailer : MailHelper;
   constructor() {
+    this.mailer = MailHelper.getInstance();
   }
 
   async getAllUsers(body: any): Promise<HTTPErrorResponse | HTTPSuccessResponse> {
@@ -36,7 +38,6 @@ export class UserController {
     try {
 
       const user = await UserModel.getUserById(body._id);
-
       responseBody = new HTTPSuccessResponse(user);
 
     } catch (error: any) {
@@ -72,11 +73,6 @@ export class UserController {
 
     let responseBody: HTTPErrorResponse | HTTPSuccessResponse;
     try {
-
-      const hashedPassword = await hash(user.password, 10);
-
-      user.password = hashedPassword;
-
       const usernameExists = await UserModel.getUserByUsername(user.username);
 
       if (usernameExists) {
@@ -123,8 +119,30 @@ export class UserController {
     return responseBody;
   }
 
-
-
+  async resendMail(body: any): Promise<HTTPErrorResponse | HTTPSuccessResponse> {
+    let responseBody: HTTPErrorResponse | HTTPSuccessResponse;
+    try {
+      const email = body['email'];
+      const user = await UserModel.getUserByEmail(email);
+      const verifyCode = await this.mailer.createActivateCode(user);
+      const activate_link = "http://localhost:8082/users/activate?code=" + verifyCode;
+      const title = "[ProjectNotes] Please verify your Email address";
+      const msgPlain = `Hey ${user?.username}!
+      An account has been created with your email address ${email}, please click the link below to activate your account.
+      ${activate_link}
+      `;
+      const msgHtml = `<html><body><p>Hey ${user?.username}!<br/>
+      An account has been created with your email address ${email}, please click the link below to activate your account.<br/>
+      <a href="${activate_link}" target="_blank">${activate_link}</a><br>
+      </p></body></html>`;
+      this.mailer.sendMail(msgPlain, msgHtml, title, email)
+      responseBody = new HTTPSuccessResponse(user);
+    } catch (error: any) {
+      console.log(error);
+      responseBody = new HTTPErrorResponse([{ code: 501, message: error.message }]);
+    }
+    return responseBody;
+  }
 
   async changePassword(user: any): Promise<HTTPErrorResponse | HTTPSuccessResponse> {
 
