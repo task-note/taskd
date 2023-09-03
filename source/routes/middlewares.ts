@@ -17,7 +17,6 @@ export async function httpInterceptor(
   /*
    * Validate if request require token and permission or not
    */
-
   const checkPermissions = authController.checkPermissions(req);
   let parsedToken;
 

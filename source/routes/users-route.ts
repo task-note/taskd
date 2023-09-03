@@ -17,6 +17,7 @@ import { ERROR_CODES } from '../lib/error-codes';
 
 export class UserRoutes {
   router: express.Router = express.Router();
+  public_router: express.Router = express.Router();
   userController: UserController;
 
   constructor() {
@@ -155,6 +156,21 @@ export class UserRoutes {
           responseBody = new HTTPErrorResponse(getListOfErrors(validateScehma));
         }
 
+        response.status(200);
+        response.json(responseBody);
+      }
+    );
+
+    this.public_router.get(
+      '/activate',
+      async (
+        request: express.Request,
+        response: express.Response,
+        next: express.NextFunction
+      ) => {
+        let responseBody: HTTPErrorResponse | HTTPSuccessResponse;
+
+        responseBody = await this.userController.activate(request.query)
         response.status(200);
         response.json(responseBody);
       }

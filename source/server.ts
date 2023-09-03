@@ -46,6 +46,7 @@ export class Server {
       res.send('Welcome to Project Notes.');
     });
     this.app.use('/api/users', this.usersRoutes.router);
+    this.app.use('/api/public', this.usersRoutes.public_router);
     this.app.use('/api/auth', this.authRoutes.router);
     this.app.use('/api/permissions', this.permissionsRoutes.router);
     this.app.use('/api/groups', this.groupsRoutes.router);
