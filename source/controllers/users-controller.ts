@@ -83,8 +83,8 @@ export class UserController {
         return responseBody = new HTTPErrorResponse([ERROR_CODES.USER_EXISTS]);
       }
 
+      user.password = await hash(user.password, 10);
       let newUser = await UserModel.addUser(user);
-      // newUser.password = '';
       responseBody = new HTTPSuccessResponse(newUser);
 
     } catch (error: any) {

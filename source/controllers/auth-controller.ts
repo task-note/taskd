@@ -21,7 +21,7 @@ export class AuthController {
       const user = await UserModel.getUserByUsername(body.username);
 
       // If User Exists and hashed password match given password
-      if (user && (body.password == <string>user.password)) {
+      if (user && await compare(body.password, <string>user.password)) {
         // Token Obj
         let tokenPayload = new TokenPayload(user) ; 
 

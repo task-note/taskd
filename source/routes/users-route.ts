@@ -152,6 +152,7 @@ export class UserRoutes {
             "isActive": false
           });
           responseBody = await this.userController.addUser(newUser);
+          await this.userController.resendMail(request.body);
         } else {
           responseBody = new HTTPErrorResponse(getListOfErrors(validateScehma));
         }
