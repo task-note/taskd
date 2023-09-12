@@ -4,9 +4,13 @@ import HTTPSuccessResponse from '../lib/http/http-success-response';
 import { hash, compare } from 'bcrypt';
 import { ERROR_CODES } from '../lib/error-codes';
 import { MailHelper } from '../helpers/mailer'
+import { JwtHelper } from '../helpers/jwt-helper';
+import { TokenPayload } from '../dto/token-payload';
 
 export class UserController {
   private mailer : MailHelper;
+  jwtHelper : JwtHelper = JwtHelper.getInstance();
+
   constructor() {
     this.mailer = MailHelper.getInstance();
   }
@@ -125,12 +129,31 @@ export class UserController {
       const email = body['email'];
       const code = body['code'];
       let user = await UserModel.getUserByEmail(email);
+      if (!user) {
+        responseBody = new HTTPErrorResponse([{ code: 404, message: "User was not found" }]);
+        return responseBody;
+      }
       const verified = await this.mailer.verifyActivateCode(user, code);
       console.log("-->", verified);
       if (verified && user) {
         user.isActive = true;
+        let tokenPayload = new TokenPayload(user) ; 
+        const accessToken = await this.jwtHelper.getAccessToken(tokenPayload);
+        const refreshToken = await this.jwtHelper.getRefreshToken(tokenPayload);
+
         const updatedUser = await UserModel.updateUser(user);
-        responseBody = new HTTPSuccessResponse(updatedUser);
+        const updatedUser2 = await UserModel.addSession(updatedUser, refreshToken);
+        if (updatedUser2) {
+          responseBody = new HTTPSuccessResponse({
+            accessToken, 
+            user
+          });
+        }
+        else {
+          responseBody = new HTTPErrorResponse([
+            ERROR_CODES.WRONG_USERNAME_OR_PASS
+          ]);  
+        }
       } else {
         responseBody = new HTTPErrorResponse([{ code: 401, message: "Authentication Code is wrong!" }]);
       }
@@ -147,7 +170,7 @@ export class UserController {
       const email = body['email'];
       const user = await UserModel.getUserByEmail(email);
       const verifyCode = await this.mailer.createActivateCode(user);
-      const activate_link = "http://localhost:3000/api/public/activate?email=" + email + "&code=" + verifyCode;
+      const activate_link = "http://localhost:3000/activate?email=" + email + "&code=" + verifyCode;
       const title = "[ProjectNotes] Please verify your Email address";
       const msgPlain = `Hey ${user?.username}!
       An ProjectNote account has been created with your email address ${email}, please click the link below to activate your account.

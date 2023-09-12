@@ -9,6 +9,7 @@ export class MailHelper {
     private MAIL_PORT = parseInt(process.env.MAIL_PORT as string);
     private MAIL_USERNAME = process.env.MAIL_USERNAME;
     private MAIL_PASSWD = process.env.MAIL_PASSWD;
+    private MAIL_FROM = process.env.MAIL_FROM;
     private ACTIVATE_SALT = process.env.ACTIVATE_SALT;
 
     private constructor() {
@@ -32,9 +33,7 @@ export class MailHelper {
   
     public async sendMail(msgPlain: string, msgHtml: string, title: string, email: string) {
         const info = await this._transporter.sendMail({
-            //from: `"Tasknote Top" <${this.MAIL_USERNAME}>`,
-            //from: `admin@tasknote.top`,
-            from: `oeichenwei@msn.com`,
+            from: this.MAIL_FROM,
             to: email,
             subject: title,
             text: msgPlain,
