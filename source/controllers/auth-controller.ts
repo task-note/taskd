@@ -7,9 +7,10 @@ import { PermissionsList } from '../lib/cached-permissions';
 import { ERROR_CODES } from '../lib/error-codes';
 import { TokenPayload } from '../dto/token-payload';
 import { JwtHelper } from '../helpers/jwt-helper';
+import { MailHelper } from '../helpers/mailer'
 
 export class AuthController {
-  
+  private mailer : MailHelper = MailHelper.getInstance();;
   jwtHelper : JwtHelper = JwtHelper.getInstance();
 
   constructor() {}
@@ -169,9 +170,25 @@ export class AuthController {
         responseBody = new HTTPErrorResponse([ERROR_CODES.INVALID_USER_NAME]);
       } else {
         await UserModel.generateResetPasswordToken(username);
+        const updatedUser = await UserModel.getUserByEmail(user.email);
         responseBody = new HTTPSuccessResponse({});
+        const resetPass = updatedUser?.resetPassword;
 
         // Send Mail Here ----------------------->
+        if (resetPass && "token" in resetPass) {
+          const activate_link = "http://localhost:3000/resetpassword?username=" + user.username + "&token=" + resetPass.token;
+          const title = "[ProjectNotes] Reset your password";
+          const msgPlain = `Hey ${user?.username}!
+          You had request to reset password on ProjectNote please click the link below to reset the password.
+          ${activate_link}
+          `;
+          const msgHtml = `<html><body><p>Hey ${user?.username}!<br/>
+          You had request to reset password on ProjectNote, please click the link below to reset your password.<br/>
+          <a href="${activate_link}" target="_blank">${activate_link}</a><br>
+          If It is not your intention, please ignore it.
+          </p></body></html>`;
+          this.mailer.sendMail(msgPlain, msgHtml, title, user.email)
+        }  
       }
     } catch (error) {
       responseBody = new HTTPErrorResponse([ERROR_CODES.UNEXPECTED_ERROR]);
